@@ -25,14 +25,21 @@ alpha = 2.0
 Eth_sim = 20
 Eth = 52.0
 
+# Suitable for a quick test run on a 2-4 core machine.
 # Number of UHECR per simulation
-Ncr = 100 # 500, 1000
-
+Ncr = 100 
 # Number of simulations at each D
-Ntrials = 4 # 48*10 
-
+Ntrials = 4 
 # Range of distances simulated
-Ds = np.linspace(0, 500, 10) # np.linspace(0, 500, 100) 
+Ds = np.linspace(0, 500, 10) 
+
+# What was used in the paper on a 48 core node.
+# # Number of UHECR per simulation
+# Ncr = 1000
+# # Number of simulations at each D
+# Ntrials = 48*10 
+# # Range of distances simulated
+# Ds = np.linspace(0, 500, 100)   
 
 # Define Stan simulation model
 sim_filename = 'uhecr_E_loss.stan'
