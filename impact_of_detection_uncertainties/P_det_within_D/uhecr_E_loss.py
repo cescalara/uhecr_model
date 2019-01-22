@@ -44,8 +44,8 @@ Ds = np.linspace(0, 500, 10)
 # Define Stan simulation model
 sim_filename = 'uhecr_E_loss.stan'
 
-# Define output HDF5 file 
-output_file = 'simulation_output/my_uhecr_E_loss_output.hdf5'
+# Define output HDF5 file
+output_file = 'simulation_output/my_uhecr_E_loss_output.h5'
 
 
 def run_stan_sim(N, Eth_sim, alpha, D, Eth, sim_filename):
@@ -89,10 +89,21 @@ if COMM.rank == 0:
     # Initialise output file and compile stan code to cache 
 
     with h5py.File(output_file, 'w') as f:
+
+        # Store parameters
+        f.create_dataset('Eth', Eth)
+        f.create_dataset('Eth_sim', Eth_sim)
+        f.create_dataset('alpha', alpha)
+        f.create_dataset('Ncr', Ncr)
+        f.create_dataset('Ntrials', Ntrials)
+        f.create_dataset('Ncr', Ds)
+
+        # Initialise
         f.create_dataset('Parr', (len(Ds),), 'f') 
         f.create_dataset('Pdet', (len(Ds),), 'f')
         f.create_dataset('D', (len(Ds),), 'f')
 
+    # Compile the Stan model
     sim = stan_utility.compile_model(filename = sim_filename, model_name = 'uhecr_E_loss')
 
     done = False
