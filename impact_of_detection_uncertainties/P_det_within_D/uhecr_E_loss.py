@@ -91,12 +91,12 @@ if COMM.rank == 0:
     with h5py.File(output_file, 'w') as f:
 
         # Store parameters
-        f.create_dataset('Eth', Eth)
-        f.create_dataset('Eth_sim', Eth_sim)
-        f.create_dataset('alpha', alpha)
-        f.create_dataset('Ncr', Ncr)
-        f.create_dataset('Ntrials', Ntrials)
-        f.create_dataset('Ncr', Ds)
+        f.create_dataset('Eth', data = Eth)
+        f.create_dataset('Eth_sim', data = Eth_sim)
+        f.create_dataset('alpha', data = alpha)
+        f.create_dataset('Ncr', data = Ncr)
+        f.create_dataset('Ntrials', data = Ntrials)
+        f.create_dataset('Ds', data = Ds)
 
         # Initialise
         f.create_dataset('Parr', (len(Ds),), 'f') 
