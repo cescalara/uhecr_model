@@ -7,6 +7,7 @@ import time
 import sys
 
 import stan_utility
+#from fancy.interfaces.stan import stan_include_path
 
 
 """
@@ -24,6 +25,7 @@ E_th -> Eth
 alpha = 2.0
 Eth_sim = 20
 Eth = 52.0
+f_E = 0.12
 
 # Suitable for a quick test run on a 2-4 core machine.
 # Number of UHECR per simulation
@@ -41,14 +43,15 @@ Ds = np.linspace(0, 500, 10)
 # # Range of distances simulated
 # Ds = np.linspace(0, 500, 100)   
 
-# Define Stan simulation model
+# Define Stan simulation model and include paths of packages
 sim_filename = 'uhecr_E_loss.stan'
+stan_include_path = '../../../stan/'
 
 # Define output HDF5 file
 output_file = 'simulation_output/my_uhecr_E_loss_output.h5'
 
 
-def run_stan_sim(N, Eth_sim, alpha, D, Eth, sim_filename):
+def run_stan_sim(N, Eth_sim, alpha, D, Eth, f_E, sim_filename):
     """
     Run the Stan simulation for N events above Eth_sim from distance D
     and return the fraction above Eth.
@@ -58,14 +61,15 @@ def run_stan_sim(N, Eth_sim, alpha, D, Eth, sim_filename):
     :param alpha: The spectral index of the sourc UHECR (power law spectrum).
     :param D: The distance at which a shell of sources is to be placed.
     :param Eth: The threshold energy of a UHECR sample.
+    :param f_E: Fractional energy uncertainty
     :param sim_filename: The filename of the Stan simulation code.
     
     :return: The detection probability for Edet > Eth and Earr > Eth.
     """
 
     # Run the simulation.
-    sim_input = {'N' : N, 'alpha' : alpha, 'Eth_sim' : Eth_sim, 'D' : D}
-    sim = stan_utility.compile_model(filename = sim_filename, model_name = 'uhecr_E_loss')
+    sim_input = {'N' : N, 'alpha' : alpha, 'Eth_sim' : Eth_sim, 'D' : D, 'f_E' : f_E}
+    sim = stan_utility.compile_model(filename = sim_filename, model_name = 'uhecr_E_loss', include_paths = stan_include_path)
     sim_output = sim.sampling(data = sim_input, iter = 1, chains = 1, 
                               algorithm = "Fixed_param")
 
@@ -97,6 +101,7 @@ if COMM.rank == 0:
         f.create_dataset('Ncr', data = Ncr)
         f.create_dataset('Ntrials', data = Ntrials)
         f.create_dataset('Ds', data = Ds)
+        f.create_dataset('f_E', data = f_E)
 
         # Initialise
         f.create_dataset('Parr', (len(Ds),), 'f') 
@@ -104,7 +109,7 @@ if COMM.rank == 0:
         f.create_dataset('D', (len(Ds),), 'f')
 
     # Compile the Stan model
-    sim = stan_utility.compile_model(filename = sim_filename, model_name = 'uhecr_E_loss')
+    sim = stan_utility.compile_model(filename = sim_filename, model_name = 'uhecr_E_loss', include_paths = stan_include_path)
 
     done = False
 
@@ -162,7 +167,7 @@ for i, d in enumerate(Ds):
             
             try:
 
-                Parr[j], Pdet[j] = run_stan_sim(Ncr, Eth_sim, alpha, D, Eth, sim_filename)
+                Parr[j], Pdet[j] = run_stan_sim(Ncr, Eth_sim, alpha, D, Eth, f_E, sim_filename)
 
             except:
 
