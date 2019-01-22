@@ -386,6 +386,7 @@ TSWLatexianTemp*
 ## HDF5, R  and fits data files
 *.fit
 *.hdf5
+*.h5
 *.R
 *.csv
 *.pdf
