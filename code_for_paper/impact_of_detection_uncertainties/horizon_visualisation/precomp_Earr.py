@@ -37,6 +37,7 @@ if COMM.rank == 0:
         f.create_dataset('Emax', data = Emax)
         f.create_dataset('E_grid', data = E_grid)
         f.create_dataset('D_grid', data = D_grid)
+        f.create_dataset('N', data = N)
     
 else:
     
