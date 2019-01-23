@@ -8,6 +8,7 @@
 
 functions {
 
+#include energy_spectrum.stan
 #include uhecr_propagation.stan
   
 }
@@ -40,7 +41,7 @@ transformed data {
     Eth_src = Eth_sim;
   }
   else {
-    Eth_src = get_source_threshold_energy(Eth_sim, D_in, x_r, x_i);
+    Eth_src = get_source_threshold_energy_sim(Eth_sim, D_in, x_r, x_i);
   }
   
 }
@@ -65,7 +66,7 @@ generated quantities {
     }
     else {
       
-      Earr[i] = get_arrival_energy(E[i], D_in, x_r, x_i);
+      Earr[i] = get_arrival_energy_sim(E[i], D_in, x_r, x_i);
 
     }
 
