@@ -7,6 +7,8 @@
 
 functions {
 
+#include energy_spectrum.stan
+#include uhecr_propagation.stan
 #include joint_model_functions.stan
 
 }
