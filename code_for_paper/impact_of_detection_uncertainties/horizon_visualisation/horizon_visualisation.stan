@@ -6,11 +6,13 @@
  */
 
 functions {
-
+  
 #include energy_spectrum.stan
 #include uhecr_propagation.stan
-#include joint_model_functions.stan
-
+#include vMF.stan
+#include observatory_exposure.stan
+#include utils.stan
+  
 }
 
 
@@ -21,14 +23,14 @@ data {
   
   /* source spectrum */
   real alpha;
-  real<lower=0> Eth;
-  real<lower=0> Eerr;
+  real<lower=0> Eth; // EeV
+  real<lower=0> Eerr; // EeV
   
   /* flux */
   int<lower=0> N;
  
   /* deflection */
-  real<lower=0> B;
+  real<lower=0> B; // nG
   real<lower=0> kappa_c;
 
 }
@@ -37,8 +39,9 @@ transformed data {
   
   real x_r[1];
   int x_i[0];
-  
-  x_r[1] = 1.0e4; // approx inf
+
+  /* approximate infinity */
+  x_r[1] = 1.0e4;
  
 }
 
@@ -57,16 +60,18 @@ generated quantities {
   
   for (i in 1:N) {
 
+    /* Uniformly distributed sources */
     D[i] = uniform_rng(0, 400);
     D_in[i, 1] = D[i];
     Eth_src[i] = get_source_threshold_energy_sim(Eth, D_in[i], x_r, x_i);
-  
+
+    /* Energy sampling and propagation */
     E[i] = spectrum_rng(alpha, Eth_src[i]);
     kappa[i] = get_kappa(E[i], B, D[i] / 10);
     omega[i] = vMF_rng(varpi, kappa[i]);      
     Earr[i] = get_arrival_energy_sim(E[i], D_in[i], x_r, x_i);
       
-    /* detection */
+    /* Detection effects */
     omega_det[i] = vMF_rng(omega[i], kappa_c);  	  
     Edet[i] = normal_rng(Earr[i], Eerr * Earr[i]);
 
