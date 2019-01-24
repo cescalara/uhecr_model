@@ -9,7 +9,11 @@
 
 functions {
 
-#include joint_model_functions.stan
+#include energy_spectrum.stan
+#include uhecr_propagation.stan
+#include vMF.stan
+#include observatory_exposure.stan
+#include utils.stan
 
 }
 
@@ -19,7 +23,6 @@ data {
   int<lower=0> Ns;
   unit_vector[3] varpi[Ns]; 
   vector[Ns] D;
-  //vector[Ns] flux;
   real Dbg;
   
   /* uhecr */
@@ -51,10 +54,6 @@ transformed data {
   vector[Ns + 1] Eth_src;
   real D_in[Ns+1, 1];
   vector[Ns] D_kappa;
-
-  //real B = 5;
-  //int index = 8;
-  //vector[Ns] flux_weight = flux / flux[index];
   
   /* D in Mpc for ODE solver */
   for (k in 1:Ns) {
@@ -83,12 +82,9 @@ parameters {
   
   /* magnetic field strength */
   real<lower=1, upper=1e2> B;
-  //real<lower=1, upper=5> B;
   
   /* energy spectrum */
-  real<lower=1, upper=10> alpha;
-  //real<lower=1, upper=10> beta;
-  
+  real<lower=1, upper=10> alpha;  
   vector<lower=Eth, upper=1e4>[N] E;
 
 }
@@ -117,7 +113,6 @@ transformed parameters {
 
   /* define transformed paramaters */
   for (k in 1:Ns) {
-    //F[k] = (L / (4 * pi() * pow(D[index], 2))) * flux_weight[k];
     F[k] = L / (4 * pi() * pow(D[k], 2));
   }
   Fs = sum(F[1:Ns]); 
@@ -140,8 +135,11 @@ transformed parameters {
 
 	kappa[i] = get_kappa(E[i], B, D_kappa[k]);
 	lp[i, k] += fik_lpdf(arrival_direction[i] | varpi[k], kappa[i], kappa_c);
-	//Earr[i] = get_arrival_energy(E[i], D_in[k], x_r, x_i);
-	Earr[i] = interpolate(E_grid, Earr_grid[k], E[i]);
+
+	/* choose full energy calculation or interpolation for speed */
+	//Earr[i] = get_arrival_energy(E[i], D_in[k], x_r, x_i); // full calc
+	Earr[i] = interpolate(E_grid, Earr_grid[k], E[i]); // interpolation
+	
 	lp[i, k] += pareto_lpdf(E[i] | Eth, alpha - 1);
       
       }
@@ -150,13 +148,12 @@ transformed parameters {
       if (k == Ns + 1) {
 
 	lp[i, k] += log(1 / ( 4 * pi() ));
-	//Earr[i] = get_arrival_energy(E[i], D_in[k], x_r, x_i);
-	//Earr[i] = interpolate(E_grid, Earr_grid[k], E[i]);
 	Earr[i] = E[i];
 	lp[i, k] += pareto_lpdf(E[i] | Eth, alpha - 1);
       
       }
-       
+
+      /* truncated gaussian */
       lp[i, k] += normal_lpdf(Edet[i] | Earr[i], Eerr * Earr[i]);
       if (Edet[i] < Eth) {
 	lp[i, k] += negative_infinity();
@@ -164,8 +161,9 @@ transformed parameters {
       else {
 	lp[i, k] += -normal_lccdf(Eth | Earr[i], Eerr * Earr[i]);
       }
+
+      /* exposure factor */
       lp[i, k] += log(A[i] * cos(zenith_angle[i]));
-      //lp[i, k] += pareto_lpdf(E[i] | Eth, alpha - 1);
             
     }
   }
@@ -174,7 +172,6 @@ transformed parameters {
   Eex = get_Eex(alpha, Eth_src);
   kappa_ex = get_kappa_ex(Eex, B, D_kappa);
   Nex = get_Nex(F, eps, kappa_grid, kappa_ex, alpha_T, Eth_src, Eth, alpha); 
-  //Nex = get_Nex_FW(F, eps, kappa_grid, kappa_ex, alpha_T, Eth_src, Eth, alpha);
   
 }
 
@@ -199,7 +196,8 @@ model {
 generated quantities {
 
   int<lower=1, upper=Ns+1> lambda[N];
-  
+
+  /* used in calculating the source-UHECR association probabilities */
   for (i in 1:N) {
 
     lambda[i] = categorical_logit_rng(lp[i]);

@@ -1,7 +1,6 @@
 /**
  * Joint model for UHECR energies and arrival directions.
- * Has one background component and option to use full 
- * energy calculation or interpolation.
+ * Generative model (i.e. forward simulation)
  *
  * @author Francesca Capel
  * @date October 2018
@@ -9,10 +8,13 @@
 
 functions {
 
-#include joint_model_functions.stan
+#include energy_spectrum.stan
+#include uhecr_propagation.stan
+#include vMF.stan
+#include observatory_exposure.stan
+#include utils.stan
 
 }
-
 
 data {
 
@@ -30,7 +32,6 @@ data {
   /* flux */
   real<lower=0> L[Ns];
   real<lower=0> F0;
-  //vector[Ns] flux;
   
   /* deflection */
   real<lower=0> B;
@@ -58,15 +59,11 @@ transformed data {
   int x_i[0];
   vector[Ns+1] Eth_src;
   real D_in[Ns + 1, 1];
-
   
   simplex[Ns+1] w_exposure;
   real<lower=0> Nex;
   int<lower=0> N;
 
-  //real beta = 5.5;
-  print("Fs: ", Fs);
-  
   /* flux and distance */
   for (k in 1:Ns) {
     F[k] = w[k] * Fs;
@@ -85,12 +82,6 @@ transformed data {
  
   N = poisson_rng(Nex);
 
-  /* check */
-  print("Eth_src: ", Eth_src);
-  print("D_in: ", D_in);
-  print("f: ", f);
-  print ("Nex:", Nex);
-  print("w_exposure: ", w_exposure);
 }
 
 generated quantities {
@@ -106,6 +97,7 @@ generated quantities {
   real Edet[N];
   
   for (i in 1:N) {
+    /* label */
     lambda[i] = categorical_rng(w_exposure);
 
     /* source */
@@ -118,14 +110,11 @@ generated quantities {
 
     }
   
-
     /* background */
     if (lambda[i] == Ns+1) {
 
       E[i] = spectrum_rng(alpha, Eth);
-      //E[i] = spectrum_rng(alpha, Eth_src[lambda[i]]);
       omega = exposure_limited_sphere_rng(a0, theta_m);
-      //Earr[i] = get_arrival_energy_sim(E[i], D_in[lambda[i]], x_r, x_i);
       Earr[i] = E[i];
 
     }
@@ -133,9 +122,7 @@ generated quantities {
     /* detection */
     arrival_direction[i] = vMF_rng(omega, kappa_c);  	  
     Edet[i] = normal_rng(Earr[i], Eerr * Earr[i]);
-    //if (Edet[i] < Eth) {
-    //  Edet[i] = normal_rng(Earr[i], Eerr * Earr[i]);
-    //}
+
   }
   
 }
