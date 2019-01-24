@@ -1,111 +1,9 @@
 /**
- * ???
+ * Utils for use with Stan simulations and models.
  *
  * @author Francesca Capel
  * @date October 2018
  */
-
-  /**
-   * Compute the absolute value of a vector. 
-   */
-  real abs_val(vector input_vector) {
-
-    real av;
-    int n = num_elements(input_vector);
-
-    real sum_squares = 0;
-    for (i in 1:n) {
-      sum_squares += (input_vector[i] * input_vector[i]);
-    }
-    av = sqrt(sum_squares);
-    return av;
-    
-  }
-
-  /**
-   * Sample point on sphere orthogonal to mu.
-   */
-  vector sample_orthonormal_to_rng(vector mu) {
-
-    int dim = num_elements(mu);
-    vector[dim] v;
-    vector[dim] proj_mu_v;
-    vector[dim] orthto;
-    
-    for (i in 1:dim) {
-     v[i] = normal_rng(0, 1);
-    }
-    
-    proj_mu_v = mu * dot_product(mu, v) / abs_val(mu);
-    orthto = v - proj_mu_v;
-    
-    return (orthto / abs_val(orthto));
-
-  }
-  
-  /**
-   * Rejection sampling scheme for sampling distance from center on
-   * surface of the sphere.
-   */
-  real sample_weight_rng(real kappa, int dim) {
-
-    real sdim = dim - 1; /* as S^{n-1} */
-    real b = sdim / (sqrt(4. * pow(kappa, 2) + pow(sdim, 2)) + 2 * kappa);
-    real x = (1 - b) / (1 + b);
-    real c = kappa * x + sdim * log(1 - pow(x, 2));
-
-    int i = 0;
-    real z;
-    real w;
-    real u;
-    while (i == 0) {
-      z = beta_rng(sdim / 2, sdim / 2);
-      w = (1 - (1 + b) * z) / (1 - (1 - b) * z);
-      u = uniform_rng(0, 1);
-      if (kappa * w + sdim * log(1 - x * w) - c >= log(u)) {
-	i = 1;
-      }
-    }
-
-    return w;
-  }
-  
-  /**
-   * Generate an N-dimensional sample from the von Mises - Fisher
-   * distribution around center mu in R^N with concentration kappa.
-   */
-  vector vMF_rng(vector mu, real kappa) {
-
-    int dim = num_elements(mu);
-    vector[dim] result;
-
-    real w = sample_weight_rng(kappa, dim);
-    vector[dim] v = sample_orthonormal_to_rng(mu);
-
-    result = ( v * sqrt(1 - pow(w, 2)) ) + (w * mu);
-    return result;
-   
-  }
-
-  /**
-   * Sample a point uniformly from the surface of a sphere of 
-   * a certain radius.
-   */
-  vector sphere_rng(real radius) {
-
-    vector[3] result;
-    real u = uniform_rng(0, 1);
-    real v = uniform_rng(0, 1);
-    real theta = 2 * pi() * u;
-    real phi = acos( (2 * v) - 1 );
-
-    result[1] = radius * cos(theta) * sin(phi); 
-    result[2] = radius * sin(theta) * sin(phi); 
-    result[3] = radius * cos(phi);
-
-    return result;
-    
-  }
   
   /**
    * Calculate weights from source distances.
@@ -128,30 +26,6 @@
   }
 
   /**
-   * Calculate weights from source distances.
-   */
-vector get_source_weights_FW(real[] L, real[] D, int index, vector flux) {
-
-    int N = num_elements(D);
-    vector[N] weights;
-    vector[N] flux_weight;
-    real normalisation = 0;
-
-    flux_weight = flux / flux[index];
-    
-    for (k in 1:N) {
-      normalisation += (L[index] / pow(D[index], 2)) * flux_weight[k];
-    }
-
-    for (k in 1:N) {
-      weights[k] = (L[index] / pow(D[index], 2)) * flux_weight[k] / normalisation;
-    }
-    
-    return weights;
-  }
-  
-
-  /**
    * Calculate weights for each source accounting for exposure 
    * and propagation effects.
    */
@@ -165,18 +39,15 @@ vector get_source_weights_FW(real[] L, real[] D, int index, vector flux) {
     for (k in 1:N-1) {
       normalisation += F[k] * eps[k] * pow(Eth_src[k] / Eth, 1 - alpha);
     }
-    //normalisation += F[N] * (alpha_T / (4 * pi())) * pow(Eth_src[N] / Eth, 1 - alpha);
     normalisation += F[N] * (alpha_T / (4 * pi()));
     
     for (k in 1:N-1) {
       weights[k] = (F[k] * eps[k] * pow(Eth_src[k] / Eth, 1 - alpha)) / normalisation;
     }
-    //weights[N] = (F[N] * (alpha_T / (4 * pi())) * pow(Eth_src[N] / Eth, 1 - alpha)) / normalisation;
     weights[N] = (F[N] * (alpha_T / (4 * pi()))) / normalisation;
     
     return weights;
   }
-
 
   /**
    * Convert from unit vector omega to theta of spherical coordinate system.
@@ -195,48 +66,6 @@ vector get_source_weights_FW(real[] L, real[] D, int index, vector flux) {
     theta = acos(omega[3]);
     
     return theta;
-  }
-
-  /**
-   * Calculate xi part of exposure.
-   * @param theta from 0 to pi.
-   * @param p observatory dependent parameters.
-   */
-  real xi_exp(real theta, real[] p) { 
-    return (p[3] - (p[2] * cos(theta))) / (p[1] * sin(theta));
-  }
-
-  /**
-   * Calculate alpha_m part of exposure.
-   * @param theta from 0 to pi.
-   * @param p observatory dependent parameters.
-   */
-  real alpha_m(real theta, real[] p) {
-
-    real am;
-    
-    real xi_val = xi_exp(theta, p);
-    if (xi_val > 1) {
-      am = 0;
-    }
-    else if (xi_val < -1) {
-      am = pi();
-    }
-    else {
-      am = acos(xi_val);
-    }
-
-    return am;
-  }
-
-  /**
-   * Calculate the exposure factor for a given position on the sky. 
-   * @param theta from 0 to pi.
-   * @param p observatory dependent parameters.
-   */
-  real m(real theta, real[] p) {
-    return (p[1] * sin(theta) * sin(alpha_m(theta, p)) 
-            + alpha_m(theta, p) * p[2] * cos(theta));
   }
 
   /**
@@ -268,23 +97,6 @@ vector get_source_weights_FW(real[] L, real[] D, int index, vector flux) {
     real Fs = 0;
     for (k in 1:N) {
       Fs += L[k] / (4 * pi() * pow(D[k], 2));
-    }
-
-    return Fs;
-  }
-
-  /**
-   * Calculate the total source flux.
-   * @param L the luminosity in s^-1
-   * @param D the distance in Mpc
-   */
-  real get_Fs_FW(real[] L, real[] D, int index, vector flux) {
-
-    int N = num_elements(D);
-    real Fs = 0;
-    vector[N] flux_weight = flux / flux[index];
-    for (k in 1:N) {
-      Fs += L[index] / (4 * pi() * pow(D[index], 2)) * flux_weight[k];
     }
 
     return Fs;
@@ -382,7 +194,6 @@ vector get_source_weights_FW(real[] L, real[] D, int index, vector flux) {
     int i = 1;
 
     if (x > xmax || x < xmin) {
-      //print("Warning, x is outside of interpolation range!");
 
       if(x > xmax) {
 	return y_values[Nx];
@@ -424,54 +235,10 @@ vector get_source_weights_FW(real[] L, real[] D, int index, vector flux) {
       eps_from_kappa = interpolate(kappa_grid, eps[k], kappa[k]);
       N[k] = F[k] * eps_from_kappa * pow(Eth_src[k] / Eth, 1 - alpha); 
     }
-    //N[Ns] = F[Ns] * (alpha_T / (4 * pi())) * pow(Eth_src[Ns] / Eth, 1 - alpha);
     N[Ns] = F[Ns] * (alpha_T / (4 * pi()));
  
     return sum(N);
   }
-
-  /**
-   * Calculate the Nex for a given kappa by
-   * interpolating over a vector of eps values
-   * for each source.
-   */
-  real get_Nex_dbg(vector F, vector[] eps, vector kappa_grid, vector kappa, real alpha_T, vector Eth_src, real Eth, real alpha) {
-
-    int Ns = num_elements(F);
-    vector[Ns] N;
-    real eps_from_kappa;
-      
-    for (k in 1:Ns-1) {
-      eps_from_kappa = interpolate(kappa_grid, eps[k], kappa[k]);
-      N[k] = F[k] * eps_from_kappa * pow(Eth_src[k] / Eth, 1 - alpha); 
-    }
-    N[Ns] = F[Ns] * (alpha_T / (4 * pi())) * pow(Eth_src[Ns] / Eth, 1 - alpha);
-    //N[Ns] = F[Ns] * (alpha_T / (4 * pi()));
- 
-    return sum(N);
-  }
-
-  /**
-   * Calculate the Nex for a given kappa by
-   * interpolating over a vector of eps values
-   * for each source.
-   */
-real get_Nex_FW(vector F, vector[] eps, vector kappa_grid, vector kappa, real alpha_T, vector Eth_src, real Eth, real alpha, vector flux_weight) {
-
-    int Ns = num_elements(F);
-    vector[Ns] N;
-    real eps_from_kappa;
-      
-    for (k in 1:Ns-1) {
-      eps_from_kappa = interpolate(kappa_grid, eps[k], kappa[k]);
-      N[k] = F[k] * eps_from_kappa * pow(Eth_src[k] / Eth, 1 - alpha) * flux_weight[k]; 
-    }
-    //N[Ns] = F[Ns] * (alpha_T / (4 * pi())) * pow(Eth_src[Ns] / Eth, 1 - alpha);
-    N[Ns] = F[Ns] * (alpha_T / (4 * pi()));
- 
-    return sum(N);
-  }
-
 
   /**
    * Define the fik PDF.
