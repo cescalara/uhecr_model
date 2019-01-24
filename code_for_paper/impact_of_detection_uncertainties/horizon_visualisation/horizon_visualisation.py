@@ -1,5 +1,6 @@
 import numpy as np
-from scipy import integrate, interpolate 
+from scipy import integrate, interpolate
+from scipy.optimize import bisect
 
 from fancy.propagation.energy_loss import get_arrival_energy
 
@@ -86,10 +87,10 @@ def P_x_z(z, x, Esrc, D_grid, E_grid, Earr_grid, B, alpha):
             
     return P_xz
 
-def HPD_contours(data, levels):
+def grid_HPD_contours(data, levels):
     """
-    Get the HPD contours for the grid of data at the 
-    specified levels.
+    Get the contours for a 2D grid of data at the 
+    specified levels as a fraction the integral over the whole grid.
     """
 
     N = 1e3
@@ -102,4 +103,31 @@ def HPD_contours(data, levels):
     contours = function(np.array(levels) * norm)
 
     return contours
+
+
+def HPD_contours(xdata, ydata, levels, bins = 50):
+    """
+    Estimate the HPD contours from sample chains (xdata, ydata).
+    Output are levels which can be input into seaborn KDE plots.
+    """
     
+    # 2D normed histogram
+    H, xedges, yedges = np.histogram2d(xdata, ydata, bins = bins, normed = True)
+    norm = H.sum() 
+    
+    # Set target levels as percentage of norm
+    target = [norm*l for l in levels]
+
+    def objective(limit, target):
+        w = np.where(H > limit)
+        count = H[w]
+        return count.sum() - target
+
+    # Find levels by summing up histogram to target
+    output_levels = []
+    for t in target:
+        output_levels.append(bisect(objective, H.min(), H.max(), args = (t,)))
+    
+    # Define bound level for shading in seaborn KDE.
+    output_levels.append(H.max())
+    return output_levels
