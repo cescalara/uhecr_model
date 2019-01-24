@@ -246,6 +246,29 @@ real get_Nex(vector F, vector[] eps, vector kappa_grid, vector kappa, real alpha
 }
 
 /**
+ * Calculate the Nex for a given kappa by
+ * interpolating over a vector of eps values
+ * for each source.
+ * This version ignores energy information and is 
+ * to be used in the arrival direction only models.
+ */
+real get_Nex_arr(vector F, vector[] eps, vector kappa_grid, real kappa, real alpha_T) {
+  
+  int Ns = num_elements(F);
+  vector[Ns] N;
+  real eps_from_kappa;
+  
+  for (k in 1:Ns-1) {
+    eps_from_kappa = interpolate(kappa_grid, eps[k], kappa);
+    N[k] = F[k] * eps_from_kappa; 
+  }
+  N[Ns] = F[Ns] * (alpha_T / (4 * pi()));
+  
+  return sum(N);
+}
+
+
+/**
  * Define the fik PDF.
  * NB: Cannot be vectorised.
  * Uses sinh(kappa) ~ exp(kappa)/2 

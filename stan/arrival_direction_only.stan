@@ -82,7 +82,7 @@ model {
   log_F = log(F);
 
   /* Nex */
-  Nex = get_Nex(F, eps, kappa_grid, kappa, alpha_T);
+  Nex = get_Nex_arr(F, eps, kappa_grid, kappa, alpha_T);
 
   /* rate factor */
   for (i in 1:N) {
