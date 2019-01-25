@@ -318,7 +318,7 @@ vector get_kappa_ex(vector E, real B, vector D) {
  */
 vector get_Eex(real alpha, vector Eth_src) {
   
-  int N = num_elements(Eth_src) - 1;
+  int N = num_elements(Eth_src);
   vector[N] Eex = pow(2, 1 / (alpha - 1)) * Eth_src[1:N];
   
   return Eex;
