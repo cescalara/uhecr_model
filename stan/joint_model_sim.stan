@@ -22,7 +22,6 @@ data {
   int<lower=0> Ns;
   unit_vector[3] varpi[Ns];
   real D[Ns];
-  real Dbg;
 
   /* source spectrum */
   real alpha;
@@ -58,7 +57,8 @@ transformed data {
   real x_r[1];
   int x_i[0];
   vector[Ns+1] Eth_src;
-  real D_in[Ns + 1, 1];
+  real D_in[Ns, 1];
+  vector[Ns] D_kappa;
   
   simplex[Ns+1] w_exposure;
   real<lower=0> Nex;
@@ -70,7 +70,11 @@ transformed data {
     D_in[k, 1] = (D[k] / 3.086) * 100; // Mpc
   }
   F[Ns+1] = F0;
-  D_in[Ns+1, 1] = (Dbg / 3.086) * 100; // Mpc
+
+  /* D in Mpc / 10 for kappa calculation */
+  for (k in 1:Ns) {
+    D_kappa[k] = (D[k] / 3.086) * 10; // Mpc / 10
+  }
  
   /* Eth_src */
   x_r[1] = 1.0e4; // approx inf
@@ -104,7 +108,7 @@ generated quantities {
     if (lambda[i] < Ns+1) {
 
       E[i] = spectrum_rng(alpha, Eth_src[lambda[i]]);
-      kappa[i] = get_kappa(E[i], B, D_in[lambda[i], 1] / 10);
+      kappa[i] = get_kappa(E[i], B, D_kappa[lambda[i]]);
       omega = exposure_limited_vMF_rng(varpi[lambda[i]], kappa[i], a0, theta_m);      
       Earr[i] = get_arrival_energy_sim(E[i], D_in[lambda[i]], x_r, x_i);
 
