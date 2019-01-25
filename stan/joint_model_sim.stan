@@ -14,6 +14,7 @@ functions {
 #include observatory_exposure.stan
 #include utils.stan
 
+  
 }
 
 data {
@@ -56,7 +57,7 @@ transformed data {
 
   real x_r[1];
   int x_i[0];
-  vector[Ns+1] Eth_src;
+  vector[Ns] Eth_src;
   real D_in[Ns, 1];
   vector[Ns] D_kappa;
   
@@ -82,8 +83,9 @@ transformed data {
   
   /* N */
   w_exposure = get_exposure_weights(F, eps, alpha_T, Eth_src, Eth, alpha);
+
   Nex = get_Nex_sim(F, eps, alpha_T, Eth_src, Eth, alpha);
- 
+  
   N = poisson_rng(Nex);
 
 }

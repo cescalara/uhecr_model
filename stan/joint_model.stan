@@ -23,7 +23,6 @@ data {
   int<lower=0> Ns;
   unit_vector[3] varpi[Ns]; 
   vector[Ns] D;
-  real Dbg;
   
   /* uhecr */
   int<lower=0> N; 
@@ -51,15 +50,14 @@ transformed data {
 
   real x_r[0];
   int x_i[0];
-  vector[Ns + 1] Eth_src;
-  real D_in[Ns+1, 1];
+  vector[Ns] Eth_src;
+  real D_in[Ns, 1];
   vector[Ns] D_kappa;
   
   /* D in Mpc for ODE solver */
   for (k in 1:Ns) {
     D_in[k, 1] = (D[k] / 3.086) * 100; // Mpc
   }
-  D_in[Ns + 1, 1] = (Dbg / 3.086) * 100; // Mpc 
 
   /* D in Mpc / 10 for kappa calculation */
   for (k in 1:Ns) {
