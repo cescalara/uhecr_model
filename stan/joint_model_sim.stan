@@ -35,7 +35,7 @@ data {
   
   /* deflection */
   real<lower=0> B;
-  real<lower=0> kappa_c;
+  real<lower=0> kappa_d;
 
   /* observatory parameters */
   real A;
@@ -126,7 +126,7 @@ generated quantities {
     }
     
     /* detection */
-    arrival_direction[i] = vMF_rng(omega, kappa_c);  	  
+    arrival_direction[i] = vMF_rng(omega, kappa_d);  	  
     Edet[i] = normal_rng(Earr[i], Eerr * Earr[i]);
 
   }

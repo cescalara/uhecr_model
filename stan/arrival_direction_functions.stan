@@ -86,16 +86,16 @@
    * Uses sinh(kappa) ~ exp(kappa)/2 
    * approximation for kappa > 100.
    */
-  real fik_lpdf(vector v, vector mu, real kappa, real kappa_c) {
+  real fik_lpdf(vector v, vector mu, real kappa, real kappa_d) {
 
     real lprob;
-    real inner = abs_val((kappa_c * v) + (kappa * mu));
+    real inner = abs_val((kappa_d * v) + (kappa * mu));
     
-    if (kappa > 100 || kappa_c > 100) {
-      lprob = log(kappa * kappa_c) - log(4 * pi() * inner) + inner - (kappa + kappa_c) + log(2);
+    if (kappa > 100 || kappa_d > 100) {
+      lprob = log(kappa * kappa_d) - log(4 * pi() * inner) + inner - (kappa + kappa_d) + log(2);
     }
     else {   
-      lprob = log(kappa * kappa_c) - log(4 * pi() * sinh(kappa) * sinh(kappa_c)) + log(sinh(inner)) - log(inner);
+      lprob = log(kappa * kappa_d) - log(4 * pi() * sinh(kappa) * sinh(kappa_d)) + log(sinh(inner)) - log(inner);
     }
 
     return lprob;   

@@ -32,7 +32,7 @@ data {
   vector[N] A;
   
   /* observatory */
-  real<lower=0> kappa_c;  
+  real<lower=0> kappa_d;  
   real<lower=0> alpha_T;
   int Ngrid;
   vector[Ngrid] eps[Ns];
@@ -132,7 +132,7 @@ transformed parameters {
       if (k < Ns+1) {
 
 	kappa[i] = get_kappa(E[i], B, D_kappa[k]);
-	lp[i, k] += fik_lpdf(arrival_direction[i] | varpi[k], kappa[i], kappa_c);
+	lp[i, k] += fik_lpdf(arrival_direction[i] | varpi[k], kappa[i], kappa_d);
 
 	/* choose full energy calculation or interpolation for speed */
 	//Earr[i] = get_arrival_energy(E[i], D_in[k], x_r, x_i); // full calc

@@ -27,7 +27,7 @@ data {
   vector[N] A;
   
   /* observatory */
-  real<lower=100, upper=10000> kappa_c;  
+  real<lower=100, upper=10000> kappa_d;  
   real<lower=0> alpha_T;
   int Ngrid;
   vector[Ngrid] eps[Ns];
@@ -92,7 +92,7 @@ model {
     for (k in 1:Ns + 1) {
 
       if (k < Ns + 1) {
-	lps[k] += fik_lpdf(arrival_direction[i] | varpi[k], kappa, kappa_c);
+	lps[k] += fik_lpdf(arrival_direction[i] | varpi[k], kappa, kappa_d);
       }
       else {
 	lps[k] += log(1 / ( 4 * pi() ));
