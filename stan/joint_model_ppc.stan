@@ -125,7 +125,7 @@ generated quantities {
     }
     
     /* detection */
-    arrival_direction[i] = vMF_rng(omega, kappa_c);  	  
+    arrival_direction[i] = vMF_rng(omega, kappa_d);  	  
     Edet[i] = normal_rng(Earr[i], Eerr * Earr[i]);
     if (Edet[i] < Eth) {
       Edet[i] = normal_rng(Earr[i], Eerr * Earr[i]);
