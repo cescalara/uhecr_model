@@ -7,7 +7,6 @@ import time
 import sys
 
 import stan_utility
-#from fancy.interfaces.stan import stan_include_path
 
 
 """
@@ -45,10 +44,10 @@ Ds = np.linspace(0, 500, 10)
 
 # Define Stan simulation model and include paths of packages
 sim_filename = 'uhecr_E_loss.stan'
-stan_include_path = '../../../stan/'
+stan_path = '../../stan/'
 
 # Define output HDF5 file
-output_file = 'simulation_output/my_uhecr_E_loss_output.h5'
+output_file = 'output/my_uhecr_E_loss_output.h5'
 
 
 def run_stan_sim(N, Eth_sim, alpha, D, Eth, f_E, sim_filename):
@@ -69,7 +68,7 @@ def run_stan_sim(N, Eth_sim, alpha, D, Eth, f_E, sim_filename):
 
     # Run the simulation.
     sim_input = {'N' : N, 'alpha' : alpha, 'Eth_sim' : Eth_sim, 'D' : D, 'f_E' : f_E}
-    sim = stan_utility.compile_model(filename = sim_filename, model_name = 'uhecr_E_loss', include_paths = stan_include_path)
+    sim = stan_utility.compile_model(filename = sim_filename, model_name = 'uhecr_E_loss', include_paths = stan_path)
     sim_output = sim.sampling(data = sim_input, iter = 1, chains = 1, 
                               algorithm = "Fixed_param")
 
@@ -109,7 +108,7 @@ if COMM.rank == 0:
         f.create_dataset('D', (len(Ds),), 'f')
 
     # Compile the Stan model
-    sim = stan_utility.compile_model(filename = sim_filename, model_name = 'uhecr_E_loss', include_paths = stan_include_path)
+    sim = stan_utility.compile_model(filename = sim_filename, model_name = 'uhecr_E_loss', include_paths = stan_path)
 
     done = False
 

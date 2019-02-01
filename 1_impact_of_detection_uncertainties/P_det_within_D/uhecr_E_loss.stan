@@ -1,8 +1,8 @@
 /**
  * Simulation of UHECR energy losses using the 
- * continuous loss approximation (see uhecr_propagation.stan)
+ * continuous loss approximation (see uhecr_propagation.stan).
  * 
- * Used to investigation impact of detection uncertainties
+ * Used to investigation impact of detection uncertainties.
  */
 
 
