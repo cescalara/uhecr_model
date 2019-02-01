@@ -12,12 +12,8 @@ If you use this code in your work please cite the above paper.
 * [Stan](https://mc-stan.org) and [PyStan](https://pystan.readthedocs.io/en/latest/)
 * [CRPropa 3](https://github.com/CRPropa/CRPropa3) - for fits to simulations run using CRPropa 3
 * [basemap](https://matplotlib.org/basemap/users/installing.html) - for sky plots
-* [fancy]() - a python wrapper to make things (a bit) cleaner
-
-The following python packages:
-  
-`pip install fancy jupyter ...`
-
+* [fancy](https://github.com/cescalara/fancy) - a python wrapper to make things (a bit) cleaner
+* [Jupyter](https://jupyter.org) - for notebooks
 
 ## Questions?
 
