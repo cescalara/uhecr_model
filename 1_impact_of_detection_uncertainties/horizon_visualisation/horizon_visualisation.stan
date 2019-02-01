@@ -31,7 +31,7 @@ data {
  
   /* deflection */
   real<lower=0> B; // nG
-  real<lower=0> kappa_c;
+  real<lower=0> kappa_d;
 
 }
 
@@ -72,7 +72,7 @@ generated quantities {
     Earr[i] = get_arrival_energy_sim(E[i], D_in[i], x_r, x_i);
       
     /* Detection effects */
-    omega_det[i] = vMF_rng(omega[i], kappa_c);  	  
+    omega_det[i] = vMF_rng(omega[i], kappa_d);  	  
     Edet[i] = normal_rng(Earr[i], Eerr * Earr[i]);
 
   }
