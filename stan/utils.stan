@@ -135,7 +135,7 @@ vector exposure_limited_vMF_rng(vector varpi, real kappa, real a0, real theta_m)
     p[2] = 1 - pdet;
     accept = categorical_rng(p);
     count += 1;
-    if (count > 1e10) {
+    if (count > 1.0e7) {
       
       print("Was stuck in exposure_limited_rng");
       accept = 1;

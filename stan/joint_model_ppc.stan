@@ -23,7 +23,6 @@ data {
   int<lower=0> Ns;
   unit_vector[3] varpi[Ns];
   real D[Ns];
-  real Dbg;
 
   /* source spectrum */
   real alpha;
@@ -58,16 +57,14 @@ transformed data {
 
   real x_r[1];
   int x_i[0];
-  vector[Ns+1] Eth_src;
-  real D_in[Ns + 1, 1];
+  vector[Ns] Eth_src;
+  real D_in[Ns, 1];
 
   
   simplex[Ns+1] w_exposure;
   real<lower=0> Nex;
   int<lower=0> N;
 
-  //real beta = 5.5;
-  print("Fs: ", Fs);
   
   /* flux and distance */
   for (k in 1:Ns) {
@@ -75,7 +72,6 @@ transformed data {
     D_in[k, 1] = (D[k] / 3.086) * 100; // Mpc
   }
   F[Ns+1] = F0;
-  D_in[Ns+1, 1] = (Dbg / 3.086) * 100; // Mpc
  
   /* Eth_src */
   x_r[1] = 1.0e4; // approx inf
@@ -86,7 +82,6 @@ transformed data {
   Nex = get_Nex_sim(F, eps, alpha_T, Eth_src, Eth, alpha);
  
   N = poisson_rng(Nex);
-
 }
 
 generated quantities {
@@ -127,6 +122,7 @@ generated quantities {
     /* detection */
     arrival_direction[i] = vMF_rng(omega, kappa_d);  	  
     Edet[i] = normal_rng(Earr[i], Eerr * Earr[i]);
+
     if (Edet[i] < Eth) {
       Edet[i] = normal_rng(Earr[i], Eerr * Earr[i]);
     }

@@ -103,6 +103,7 @@ generated quantities {
   real Edet[N];
   
   for (i in 1:N) {
+
     /* label */
     lambda[i] = categorical_rng(w_exposure);
 
