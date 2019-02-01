@@ -13,7 +13,6 @@ functions {
 #include vMF.stan
 #include observatory_exposure.stan
 #include utils.stan
-
   
 }
 
