@@ -390,3 +390,6 @@ TSWLatexianTemp*
 *.R
 *.csv
 *.pdf
+
+# vscode related files
+.vscode/**
