@@ -32,7 +32,7 @@ if COMM.rank == 0:
     Es = np.array_split(E_grid, COMM.size)
 
     # Store parameters
-    with h5py.File(ouput_file, 'w') as f:
+    with h5py.File(output_file, 'w') as f:
         f.create_dataset('Eth', data = Eth)
         f.create_dataset('Emax', data = Emax)
         f.create_dataset('E_grid', data = E_grid)
@@ -60,8 +60,7 @@ for i, E in enumerate(Es):
     
 results = MPI.COMM_WORLD.gather(Earr, root=0)
 
-if COMM.rank == 0
-:
+if COMM.rank == 0:
     results = np.vstack(results)
     print('time:', time.time() - start_time)
 
