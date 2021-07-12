@@ -77,6 +77,9 @@ real sample_weight_rng(real kappa, int dim) {
 /**
  * Generate an N-dimensional sample from the von Mises - Fisher
  * distribution around center mu in R^N with concentration kappa.
+ * 
+ * KW: Based on the following code:
+ * https://github.com/jasonlaska/spherecluster/blob/develop/spherecluster/util.py
  */
 vector vMF_rng(vector mu, real kappa) {
   
