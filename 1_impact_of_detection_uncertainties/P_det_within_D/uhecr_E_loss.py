@@ -197,7 +197,7 @@ for i, d in enumerate(Ds):
             f['Parr'][i] = Parr
             f['Pdet'][i] = Pdet
             f['D'][i] = D
-            check_arr = f['Pdet'].value[i-5:i]
+            check_arr = f['Pdet'][i-5:i]
 
         # If Pdet has been 0 for a while, stop simulating.    
         if np.nanmean(check_arr) == 0.0:
