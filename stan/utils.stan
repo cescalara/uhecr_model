@@ -115,13 +115,27 @@ vector exposure_limited_vMF_rng(vector varpi, real kappa, real a0, real theta_m)
   vector[3] omega;
   real theta;
   real pdet;
+  real max_dec;
   vector[2] p;
   
   /* exposure */
   params[1] = cos(a0);
   params[2] = sin(a0);
   params[3] = cos(theta_m);
-  m_max = m(pi(), params);
+
+  /* declination corresponding to maximum
+   * exposure factor changes between PAO and TA.
+   * We set this based on latitude sign 
+   * (PAO: a0 < 0, TA: a0 > 0).
+  */
+  if (a0 < 0) {
+    max_dec = pi();
+  }
+  else if (a0 > 0) {
+    max_dec = 0.;
+  }
+
+  m_max = m(max_dec, params);
   
   accept = 0;
   count = 0;
@@ -160,12 +174,21 @@ vector exposure_limited_sphere_rng(real a0, real theta_m) {
   vector[3] omega;
   real theta;
   real pdet;
+  real max_dec;
   vector[2] p;
   
   params[1] = cos(a0);
   params[2] = sin(a0);
   params[3] = cos(theta_m);
-  m_max = m(pi(), params);
+  
+  if (a0 < 0) {
+    max_dec = pi();
+  }
+  else if (a0 > 0) {
+    max_dec = 0.;
+  }
+
+  m_max = m(max_dec, params);
   
   accept = 0;
   while (accept != 1) {	  
