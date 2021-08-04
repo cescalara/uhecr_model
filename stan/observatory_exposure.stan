@@ -42,6 +42,10 @@ real alpha_m(real theta, real[] p) {
  * Calculate the exposure factor for a given position on the sky. 
  * @param theta from 0 to pi.
  * @param p observatory dependent parameters.
+ *
+ * KW: theta = pi/2 - declination, so dec = -90 deg
+ * corresponds to theta = pi, dec = +90 deg 
+ * is theta = 0.
  */
 real m(real theta, real[] p) {
   return (p[1] * sin(theta) * sin(alpha_m(theta, p)) 

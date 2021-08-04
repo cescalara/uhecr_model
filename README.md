@@ -11,11 +11,28 @@ If you use this code in your work please cite the [paper](https://arxiv.org/abs/
 
 ## Dependencies
 
-* [Stan](https://mc-stan.org) and [PyStan](https://pystan.readthedocs.io/en/latest/)
+* [Stan](https://mc-stan.org) and [PyStan](https://pystan2.readthedocs.io/en/latest/)
 * [CRPropa 3](https://github.com/CRPropa/CRPropa3) - for fits to simulations run using CRPropa 3
 * [basemap](https://matplotlib.org/basemap/users/installing.html) - for sky plots
 * [fancy](https://github.com/cescalara/fancy) - a python wrapper to make things (a bit) cleaner
+* [stan_utility](https://github.com/grburgess/stan_utility) - utility package for pystan
 * [Jupyter](https://jupyter.org) - for notebooks
+
+## Update
+
+This code is forked over from `cescalara/uhecr_model`. The code is updated so that it runs with the latest versions of:
+- basemap
+- h5py
+- seaborn
+- matplotlib
+- pystan2 (this code does not work with pystan3)
+- CRPropa3
+
+All requirements for the specific package versions is given in `uhecr_project_env.yml` and can be easily replicated by creating a new conda environment
+with this file. 
+
+The utility packages `cescalara/fancy` and `grburgess/stan_utility` have also been updated and forked over to `uhecr_project/fancy`, `uhecr_project/stan_utility`. 
+Please use these packages with this code instead.
 
 ## Questions?
 
