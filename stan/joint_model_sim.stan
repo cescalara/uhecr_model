@@ -91,7 +91,7 @@ transformed data {
 
 generated quantities {
 
-  int lambda[N];
+  int lambda[N]; // # UHECR per source
   unit_vector[3] omega;
   unit_vector[3] arrival_direction[N];
   real Nex_sim = Nex;
