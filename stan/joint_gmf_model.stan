@@ -30,10 +30,10 @@ data {
   real<lower=0> Edet[N];
   vector[N] zenith_angle;
   vector[N] A;
-  vector[N] kappa_d;  
+  vector[N] kappa_gmf;  
   int Z;
   
-  /* observatory */
+  /* observatory */ 
   real<lower=0> alpha_T;
   int Ngrid;
   vector[Ngrid] eps[Ns];
@@ -133,7 +133,7 @@ transformed parameters {
       if (k < Ns+1) {
 
 	kappa[i] = Z * get_kappa(E[i], B, D_kappa[k]);
-	lp[i, k] += fik_lpdf(arrival_direction[i] | varpi[k], kappa[i], kappa_d[i]);
+	lp[i, k] += fik_lpdf(arrival_direction[i] | varpi[k], kappa[i], kappa_gmf[i]);
 
 	/* choose full energy calculation or interpolation for speed */
 	//Earr[i] = get_arrival_energy(E[i], D_in[k], x_r, x_i); // full calc
