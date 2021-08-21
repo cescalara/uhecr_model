@@ -60,7 +60,7 @@ if __name__ == "__main__":
     # get filenames
     table_file = os.path.join(table_path, 'tables_{0}_{1}.h5'.format(
         args.source_type, args.detector_type))
-    analysis_output_file = os.path.join("{0}_fit_{5}_{1}_{2}_{3}_{4}.h5".format(
+    analysis_output_file = os.path.join(output_path, "{0}_fit_{5}_{1}_{2}_{3}_{4}.h5".format(
         args.model_type, args.source_type, args.detector_type, args.seed, args.ptype, args.dtype))
 
     # get things related to detector
