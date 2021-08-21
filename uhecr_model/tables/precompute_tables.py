@@ -38,17 +38,17 @@ def get_detectorimports(detector_type):
 
 # paths to important files
 path_to_this_file = os.path.abspath(os.path.dirname(__file__))
-stan_path = os.path.join(path_to_this_file, "stan")
+stan_path = os.path.join(path_to_this_file, "..", "stan")
 source_file = os.path.join(path_to_this_file, "..", "data", "sourcedata.h5")
 uhecr_file = os.path.join(path_to_this_file, "..", "data", "UHECRdata.h5")
-table_path = os.path.join(path_to_this_file, "tables")
+# table_path = os.path.join(path_to_this_file, "tables")
 
 if __name__ == "__main__":
 
     args = parser.parse_args()
 
     # filename for table
-    table_file = os.path.join(table_path, "tables_{0}_{1}.h5".format(args.source_type, args.detector_type))
+    table_file = os.path.join(path_to_this_file, "tables_{0}_{1}.h5".format(args.source_type, args.detector_type))
 
     # get things related to detector
     detector_properties, Eth = get_detectorimports(
@@ -79,9 +79,6 @@ if __name__ == "__main__":
     # grid for arrival energies
     analysis.build_energy_table(table_file = table_file)
 
-    # kappa_d for each composition
-    analysis.build_kappad(table_file=table_file)
-
     # check keys as verification if enabled
     if args.check:
         with h5py.File(table_file, "r") as f:
@@ -92,8 +89,3 @@ if __name__ == "__main__":
 
             print("Energy Grid keys:")
             print(f["energy"].keys())
-
-            print("kappa_d keys:")
-            print(f["kappa_d"].keys())
-            print("kappa_d/ptype keys: ")
-            print(f["kappa_d"]["p"].keys())  # take proton for example
