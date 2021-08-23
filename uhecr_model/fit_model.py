@@ -63,6 +63,8 @@ if __name__ == "__main__":
     analysis_output_file = os.path.join(output_path, "{0}_fit_{5}_{1}_{2}_{3}_{4}.h5".format(
         args.model_type, args.source_type, args.detector_type, args.seed, args.ptype, args.dtype))
 
+    # if not os.path.exists(analysis_output_file):
+
     # get things related to detector
     detector_properties, alpha_T, M, Eth = get_detectorimports(
         args.detector_type)
@@ -75,7 +77,7 @@ if __name__ == "__main__":
         # simulated data uses joint model, unless considering gmf propagation too
         sim_model_type = "joint_gmf" if args.model_type == "joint_gmf" else "joint"
         sim_output_file = os.path.join(output_path, "{0}_sim_{1}_{2}_{3}.h5".format(
-        args.model_type, args.source_type, args.detector_type, args.seed))
+        sim_model_type, args.source_type, args.detector_type, args.seed))
         data.from_file(sim_output_file)
 
     elif args.dtype == "real":  # add source / UHECR / detector data manually
