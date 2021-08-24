@@ -22,23 +22,52 @@ output_path = os.path.join(path_to_this_file, "output")
 if not os.path.exists(output_path):
     os.mkdir(output_path)
 
-
 parser = argparse.ArgumentParser(description='Simulate UHECR dataset.')
-parser.add_argument('--source', dest='source_type', action='store', default="SBG_23", type=str,
-                    help='The source catalogue used (from SBG_23, 2FHL_250Mpc, swift_BAT_213)',
-                    choices=["SBG_23", "2FHL_250Mpc", "swift_BAT_213"])
-parser.add_argument('--detector', dest='detector_type', action='store', default="TA2015", type=str,
-                    help='The type of detector config (from TA2015, auger2014, auger2010)',
-                    choices=["TA2015", "auger2014", "auger2010"])
-parser.add_argument('--model', dest='model_type', action='store', default="joint", type=str,
-                    help='The stan model considered for simulation (from joint, joint_gmf)',
-                    choices=["joint", "joint_gmf"])
-parser.add_argument('--ptype', dest='ptype', action='store', default="p", type=str,
-                    help="Type of particle used for back propagation (only used with joint_gmf model).")
-parser.add_argument("--seed", dest="seed", action="store", default=19990308, type=int,
-                    help="Random seed used for fixed parameter sampling in Stan.")
-parser.add_argument("--sim_inputs", dest="sim_inputs", default=[0.5, 20, 3.0],
-                    help="Simulation inputs: f, B, alpha", nargs=3)
+parser.add_argument(
+    '--source',
+    dest='source_type',
+    action='store',
+    default="SBG_23",
+    type=str,
+    help='The source catalogue used (from SBG_23, 2FHL_250Mpc, swift_BAT_213)',
+    choices=["SBG_23", "2FHL_250Mpc", "swift_BAT_213"])
+parser.add_argument(
+    '--detector',
+    dest='detector_type',
+    action='store',
+    default="TA2015",
+    type=str,
+    help='The type of detector config (from TA2015, auger2014, auger2010)',
+    choices=["TA2015", "auger2014", "auger2010"])
+parser.add_argument(
+    '--model',
+    dest='model_type',
+    action='store',
+    default="joint",
+    type=str,
+    help='The stan model considered for simulation (from joint, joint_gmf)',
+    choices=["joint", "joint_gmf"])
+parser.add_argument(
+    '--ptype',
+    dest='ptype',
+    action='store',
+    default="p",
+    type=str,
+    help=
+    "Type of particle used for back propagation (only used with joint_gmf model)."
+)
+parser.add_argument(
+    "--seed",
+    dest="seed",
+    action="store",
+    default=19990308,
+    type=int,
+    help="Random seed used for fixed parameter sampling in Stan.")
+parser.add_argument("--sim_inputs",
+                    dest="sim_inputs",
+                    default=[0.5, 20, 3.0],
+                    help="Simulation inputs: f, B, alpha",
+                    nargs=3)
 
 
 def get_detectorimports(detector_type):
@@ -59,7 +88,7 @@ def get_sim_inputs(sim_inputs, D_src, M, alpha_T):
     '''Return parameters used for Model.input given simulation inputs.'''
     f, B, alpha = sim_inputs
 
-    FT_PAO = 0.3601   # total flux using auger2014 data
+    FT_PAO = 0.3601  # total flux using auger2014 data
     Nsim_expected = FT_PAO / (M / alpha_T)
     Nsim = int(np.round(Nsim_expected))
 
@@ -83,10 +112,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # get filenames
-    table_file = os.path.join(table_path, 'tables_{0}_{1}.h5'.format(
-        args.source_type, args.detector_type))
-    sim_output_file = os.path.join(output_path, "{0}_sim_{1}_{2}_{3}.h5".format(
-        args.model_type, args.source_type, args.detector_type, args.seed))
+    table_file = os.path.join(
+        table_path, 'tables_{0}_{1}.h5'.format(args.source_type,
+                                               args.detector_type))
+    sim_output_file = os.path.join(
+        output_path,
+        "{0}_sim_{1}_{2}_{3}_{4}.h5".format(args.model_type, args.source_type,
+                                            args.detector_type, args.seed,
+                                            args.ptype))
 
     # get things related to detector
     detector_properties, alpha_T, M, Eth = get_detectorimports(
@@ -100,22 +133,24 @@ if __name__ == "__main__":
     # get the simulation inputs
     D_src = data.source.distance
     B, L, F0, alpha = get_sim_inputs(args.sim_inputs, D_src, M, alpha_T)
-    Eth_sim = 20   # in EeV, set globally for now
+    Eth_sim = 20  # in EeV, set globally for now
 
     # create model, compile it, and add simulation inputs to it
-    sim_name = os.path.join(
-        stan_path, '{0}_model_sim.stan'.format(args.model_type))
+    sim_name = os.path.join(stan_path,
+                            '{0}_model_sim.stan'.format(args.model_type))
 
     simulation = Model(sim_filename=sim_name, include_paths=stan_path)
     simulation.compile(reset=False)
 
-    simulation.input(B=B, L=L, F0=F0,
-                     alpha=alpha, Eth=Eth, ptype=args.ptype)
+    simulation.input(B=B, L=L, F0=F0, alpha=alpha, Eth=Eth, ptype=args.ptype)
 
     # create Analysis object and perform the simulation (sampling)
     summary = b'Simulation of UHECR dataset'
-    sim_analysis = Analysis(data, simulation, analysis_type=args.model_type,
-                            filename=sim_output_file, summary=summary)
+    sim_analysis = Analysis(data,
+                            simulation,
+                            analysis_type=args.model_type,
+                            filename=sim_output_file,
+                            summary=summary)
 
     # building exposure and energy tables before sampling in stan
     sim_analysis.build_tables(sim_only=True)

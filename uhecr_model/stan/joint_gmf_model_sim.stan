@@ -113,7 +113,7 @@ generated quantities {
     if (lambda[i] < Ns+1) {
 
       E[i] = spectrum_rng(alpha, Eth_src[lambda[i]]);
-      kappa[i] = Z * get_kappa(E[i], B, D_kappa[lambda[i]]);
+      kappa[i] = inv_square(Z) * get_kappa(E[i], B, D_kappa[lambda[i]]);
       Earr[i] = get_arrival_energy_sim(E[i], D_in[lambda[i]], x_r, x_i);
 
     }

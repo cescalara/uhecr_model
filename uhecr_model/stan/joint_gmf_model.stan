@@ -132,7 +132,7 @@ transformed parameters {
       /* sources */
       if (k < Ns+1) {
 
-	kappa[i] = Z * get_kappa(E[i], B, D_kappa[k]);
+	kappa[i] = inv_square(Z) * get_kappa(E[i], B, D_kappa[k]);
 	lp[i, k] += fik_lpdf(arrival_direction[i] | varpi[k], kappa[i], kappa_gmf[i]);
 
 	/* choose full energy calculation or interpolation for speed */
