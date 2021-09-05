@@ -6,102 +6,156 @@ This is made so that this can be run on command line as a bash script.
 import os
 from fancy import Data, Model, Analysis
 
-import argparse
-
-
 # paths to important files
 path_to_this_file = os.path.abspath(os.path.dirname(__file__))
 stan_path = os.path.join(path_to_this_file, "stan")
 source_file = os.path.join(path_to_this_file, "data", "sourcedata.h5")
 uhecr_file = os.path.join(path_to_this_file, "data", "UHECRdata.h5")
 table_path = os.path.join(path_to_this_file, "tables")
-output_path = os.path.join(path_to_this_file, "output")
+output_path = os.path.join(path_to_this_file, "outputs")
+output_sim_path = os.path.join(output_path, "sim")
+output_data_path = os.path.join(output_path, "data")
 
 # make output path if it doesnt exist
 if not os.path.exists(output_path):
     os.mkdir(output_path)
 
-parser = argparse.ArgumentParser(description='Fit Stan Model to Data')
-parser.add_argument('--source', dest='source_type', action='store', default="SBG_23", type=str,
-                    help='The source catalogue used (from SBG_23, 2FHL_250Mpc, swift_BAT_213)',
-                    choices=["SBG_23", "2FHL_250Mpc", "swift_BAT_213"])
-parser.add_argument('--detector', dest='detector_type', action='store', default="TA2015", type=str,
-                    help='The type of detector config (from TA2015, auger2014, auger2010)',
-                    choices=["TA2015", "auger2014", "auger2010"])
-parser.add_argument('--model', dest='model_type', action='store', default="joint", type=str,
-                    help='The stan model considered (from arrival_direction, joint, joint_gmf)',
-                    choices=["arrival_direction", "joint", "joint_gmf"])
-parser.add_argument('--dtype', dest='dtype', action='store', default="real", type=str,
-                    help="Fit with simulated or real data (choose between 'sim' and 'real')",
-                    choices=["sim", "real"])
-parser.add_argument('--ptype', dest='ptype', action='store', default="p", type=str,
-                    help="Type of particle used for back propagation (only used with joint_gmf model).")
-parser.add_argument("--seed", dest="seed", action="store", default=19990308, type=int,
-                    help="Random seed used for MCMC in Stan.")
+if not os.path.exists(output_data_path):
+    os.mkdir(output_data_path)
 
 
-def get_detectorimports(detector_type):
-    '''Get variables imported by (detector_name).py'''
-    if detector_type == "TA2015":
-        from fancy.detector.TA2015 import detector_properties, alpha_T, M, Eth
-    elif detector_type == "auger2014":
-        from fancy.detector.auger2014 import detector_properties, alpha_T, M, Eth
-    elif detector_type == "auger2010":
-        from fancy.detector.auger2010 import detector_properties, alpha_T, M, Eth
-    else:
-        raise Exception("Undefined detector type!")
+class FitModel():
+    def __init__(self, fit_args, sim_model=None, verbose=False):
+        '''Fit model to either data or simulation.'''
 
-    return detector_properties, alpha_T, M, Eth
+        self.source = fit_args["source"]
+        self.detector = fit_args["detector"]
+        self.ptype = fit_args["ptype"]
+        self.model = fit_args["model"]
 
-if __name__ == "__main__":
+        self.seed = fit_args["seed"]
+        self.end_label = fit_args["end_label"]
 
-    args = parser.parse_args()
+        self.sim = False if sim_model is None else True
+        self.sim_model = sim_model  # enable simulation or not
 
-    # get filenames
-    table_file = os.path.join(table_path, 'tables_{0}_{1}.h5'.format(
-        args.source_type, args.detector_type))
-    analysis_output_file = os.path.join(output_path, "{0}_fit_{5}_{1}_{2}_{3}_{4}.h5".format(
-        args.model_type, args.source_type, args.detector_type, args.seed, args.ptype, args.dtype))
+        self.verbose = verbose  # for print statements
 
-    # if not os.path.exists(analysis_output_file):
+        self._init_files()
 
-    # get things related to detector
-    detector_properties, alpha_T, M, Eth = get_detectorimports(
-        args.detector_type)
+    def _init_files(self):
+        '''Initialize filenames for output files / table files'''
+        self.table_file = os.path.join(
+            table_path, 'tables_{0}_{1}.h5'.format(self.source, self.detector))
 
-    # create Data object
-    data = Data()
+        if self.end_label is not None:
+            output_file = "{0}_{1}_{2}_{3}_{4}.h5".format(
+                self.source, self.detector, self.seed, self.ptype,
+                self.end_label)
+        else:
+            output_file = "{0}_{1}_{2}_{3}.h5".format(self.source,
+                                                      self.detector, self.seed,
+                                                      self.ptype)
 
-    # add things to Data, method depends on sim vs real data
-    if args.dtype == "sim":  # get data from sim_output_file
-        # simulated data uses joint model, unless considering gmf propagation too
-        sim_model_type = "joint_gmf" if args.model_type == "joint_gmf" else "joint"
-        sim_output_file = os.path.join(output_path, "{0}_sim_{1}_{2}_{3}.h5".format(
-        sim_model_type, args.source_type, args.detector_type, args.seed))
-        data.from_file(sim_output_file)
+        if self.sim:
 
-    elif args.dtype == "real":  # add source / UHECR / detector data manually
-        data.add_source(source_file, args.source_type)
-        data.add_uhecr(uhecr_file, args.detector_type, args.ptype)
-        data.add_detector(detector_properties)
+            sim_output_path = os.path.join(output_sim_path, self.sim_model)
 
-    # create Model, compile it, and set input
-    model_name = os.path.join(
-        stan_path, '{0}_model.stan'.format(args.model_type))
-    model = Model(model_filename=model_name, include_paths=stan_path)
-    model.compile(reset=False)
-    model.input(Eth=Eth)  # in EeV
+            self.sim_output_file = os.path.join(sim_output_path, "simulation",
+                                                output_file)
 
-    # perform the analysis
-    summary = b'Fitting the model to given data.'
-    analysis = Analysis(data, model, analysis_type=args.model_type,
-                        filename=analysis_output_file, summary=summary)
+            # make required directories
+            if not os.path.exists(os.path.join(sim_output_path, "fit")):
+                os.mkdir(os.path.join(sim_output_path, "fit"))
+            if not os.path.exists(
+                    os.path.join(sim_output_path, "fit", self.model)):
+                os.mkdir(os.path.join(sim_output_path, "fit", self.model))
 
-    # Each catalogue has a file of pre-computed values
-    analysis.use_tables(table_file)
+            self.analysis_output_file = os.path.join(sim_output_path, "fit",
+                                                     self.model, output_file)
 
-    # Fit the Stan model
-    fit = analysis.fit_model(chains=16, iterations=500, seed=args.seed)
+        else:
+            self.analysis_output_file = os.path.join(output_data_path,
+                                                     self.model, output_file)
 
-    # Save to analysis file
-    analysis.save()
+        if self.verbose:
+            print("Table output file: ", self.table_file)
+            print("Analysis Output File: ", self.analysis_output_file)
+
+            if self.sim:
+                print("Reading from Simulation Output File: ",
+                      self.sim_output_file)
+
+    def _init_data_and_model(self, model_fname=None):
+        '''Initialize Data object, which contains source / UHECR/ detector information'''
+
+        detector_properties, Eth = self._get_detectorimports()
+
+        if self.verbose:
+            print("Energy threshold: ", Eth)
+
+        data = Data()
+
+        if self.sim:
+            data.from_file(self.sim_output_file)
+
+        else:
+            data.add_source(source_file, self.source)
+            data.add_uhecr(uhecr_file, self.detector, self.ptype)
+            data.add_detector(detector_properties)
+
+        model_fname = '{0}_model.stan'.format(
+            self.model) if model_fname is None else model_fname
+
+        model_filename = os.path.join(stan_path, model_fname)
+
+        model = Model(model_filename=model_filename, include_paths=stan_path)
+        model.compile(reset=False)
+        model.input(Eth=Eth)  # in EeV
+
+        if self.verbose:
+            print("Model file used: ", model_filename)
+
+        return data, model
+
+    def _get_detectorimports(self):
+        '''Get variables imported by (detector_name).py'''
+        if self.detector == "TA2015":
+            from fancy.detector.TA2015 import detector_properties, Eth
+        elif self.detector == "auger2014":
+            from fancy.detector.auger2014 import detector_properties, Eth
+        elif self.detector == "auger2010":
+            from fancy.detector.auger2010 import detector_properties, Eth
+        else:
+            raise Exception("Undefined detector type!")
+
+        return detector_properties, Eth
+
+    def set_analysis(self, model_fname=None):
+        '''Setup the analysis which conducts the fitting'''
+
+        data, model = self._init_data_and_model(
+            model_fname=model_fname)  # initialize Data() object
+
+        summary = b'Fitting the model to given data.'
+        self.analysis = Analysis(data,
+                                 model,
+                                 analysis_type=self.model,
+                                 filename=self.analysis_output_file,
+                                 summary=summary)
+
+        # Each catalogue has a file of pre-computed values
+        self.analysis.use_tables(self.table_file)
+
+    def fit(self, chains=24, iterations=500, warmup=100):
+        '''Perform the fit.'''
+        # Fit the Stan model
+        fit = self.analysis.fit_model(chains=chains,
+                                      iterations=iterations,
+                                      warmup=warmup,
+                                      seed=self.seed)
+
+    def save(self):
+        '''Save to output file'''
+        # Save to analysis file
+        self.analysis.save()
