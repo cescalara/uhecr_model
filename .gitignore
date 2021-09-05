@@ -401,3 +401,5 @@ lens.cfg
 
 # figure files
 **.png
+**.svg
+**.jpg
