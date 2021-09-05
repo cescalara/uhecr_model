@@ -74,7 +74,7 @@ transformed data {
 parameters { 
 
   /* source luminosity */
-  real<lower=0, upper=(1e5 / Ns)> L;
+  real<lower=0, upper=(1000 / Ns)> L;
   
   /* background flux */
   real<lower=0, upper=1e3> F0;
@@ -187,8 +187,8 @@ model {
 
   /* priors */
   alpha ~ normal(3, 2);
-  B ~ normal(50, 50);
-  L ~ normal(0, 1.0e3 / Ns);
+  B ~ normal(1, 3);
+  L ~ normal(0, 100 / Ns);
   F0 ~ normal(0, 1.0e2);
 
 }

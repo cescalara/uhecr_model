@@ -319,10 +319,10 @@ real fik_lpdf(vector v, vector mu, real kappa, real kappa_d) {
  * @param B rms magnetic field strength in nG
  * @param D distance in Mpc / 10
  */
-real get_kappa(real E, real B, real D) {
+real get_kappa(real E, real B, real D, int Z) {
   
   // return 2.3 * inv_square( 0.0401 * inv(E / 50) * B * sqrt(D) );
-  return 7552 * inv_square(2.3 * inv(E / 50) * B * sqrt(D));
+  return 7552 * inv_square(2.3 * Z * inv(E / 50) * B * sqrt(D));
 }
 
 /**
@@ -331,10 +331,11 @@ real get_kappa(real E, real B, real D) {
  * @param B rms magnetic field strength in nG
  * @param D distance in Mpc / 10
  */
-vector get_kappa_ex(vector E, real B, vector D) {
+vector get_kappa_ex(vector E, real B, vector D, int Z) {
   
   int Ns = num_elements(E);
-  vector[Ns] kappa_ex = 2.3 * inv_square( 0.0401 * inv(E / 50) * B .* sqrt(D) );
+  // vector[Ns] kappa_ex = 2.3 * inv_square( 0.0401 * inv(E / 50) * B .* sqrt(D) );
+  vector[Ns] kappa_ex = 7552 * inv_square(2.3 * Z * inv(E / 50) * B .* sqrt(D));
   return kappa_ex;
 }
 

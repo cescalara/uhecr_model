@@ -30,10 +30,10 @@ data {
   real<lower=0> Edet[N];
   vector[N] zenith_angle;
   vector[N] A;
+  vector[N] kappa_gmf;  
   int Z;
   
-  /* observatory */
-  real<lower=0> kappa_d;  
+  /* observatory */ 
   real<lower=0> alpha_T;
   int Ngrid;
   vector[Ngrid] eps[Ns];
@@ -74,7 +74,7 @@ transformed data {
 parameters { 
 
   /* source luminosity */
-  real<lower=0, upper=(1e5 / Ns)> L;
+  real<lower=0, upper=(1000 / Ns)> L;
   
   /* background flux */
   real<lower=0, upper=1e3> F0;
@@ -133,7 +133,7 @@ transformed parameters {
       if (k < Ns+1) {
 
 	kappa[i] = get_kappa(E[i], B, D_kappa[k], Z);
-	lp[i, k] += fik_lpdf(arrival_direction[i] | varpi[k], kappa[i], kappa_d);
+	lp[i, k] += fik_lpdf(arrival_direction[i] | varpi[k], kappa[i], kappa_gmf[i]);
 
 	/* choose full energy calculation or interpolation for speed */
 	//Earr[i] = get_arrival_energy(E[i], D_in[k], x_r, x_i); // full calc
@@ -187,8 +187,8 @@ model {
 
   /* priors */
   alpha ~ normal(3, 2);
-  B ~ normal(50, 50);
-  L ~ normal(0, 1.0e3 / Ns);
+  B ~ normal(1, 3);
+  L ~ normal(0, 100 / Ns);
   F0 ~ normal(0, 1.0e2);
 
 }

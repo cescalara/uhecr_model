@@ -67,7 +67,7 @@ transformed data {
   /* flux and distance */
   for (k in 1:Ns) {
     F[k] = w[k] * Fs;
-    D_in[k, 1] = (D[k] / 3.086) * 100; // Mpc
+    D_in[k, 1] = (D[k] / 3.086) * 100 - 0.02; // Mpc
   }
   F[Ns+1] = F0;
 
@@ -76,7 +76,7 @@ transformed data {
   Subtract by 20kpc to account for galactic boundary
   */
   for (k in 1:Ns) {
-    D_kappa[k] = ((D[k] / 3.086) - 0.02) * 10; // Mpc / 10
+    D_kappa[k] = ((D[k] / 3.086) * 10) - 0.2; // Mpc / 10
   }
  
   /* Eth_src */
@@ -113,7 +113,7 @@ generated quantities {
     if (lambda[i] < Ns+1) {
 
       E[i] = spectrum_rng(alpha, Eth_src[lambda[i]]);
-      kappa[i] = inv_square(Z) * get_kappa(E[i], B, D_kappa[lambda[i]]);
+      kappa[i] = get_kappa(E[i], B, D_kappa[lambda[i]], Z);
       Earr[i] = get_arrival_energy_sim(E[i], D_in[lambda[i]], x_r, x_i);
 
     }

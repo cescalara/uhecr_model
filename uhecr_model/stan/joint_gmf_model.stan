@@ -132,7 +132,7 @@ transformed parameters {
       /* sources */
       if (k < Ns+1) {
 
-	kappa[i] = inv_square(Z) * get_kappa(E[i], B, D_kappa[k]);
+	kappa[i] = get_kappa(E[i], B, D_kappa[k], Z);
 	lp[i, k] += fik_lpdf(arrival_direction[i] | varpi[k], kappa[i], kappa_gmf[i]);
 
 	/* choose full energy calculation or interpolation for speed */
@@ -169,7 +169,7 @@ transformed parameters {
 
   /* Nex */
   Eex = get_Eex(alpha, Eth_src);
-  kappa_ex = get_kappa_ex(Eex, B, D_kappa);
+  kappa_ex = get_kappa_ex(Eex, B, D_kappa, Z);
   Nex = get_Nex(F, eps, kappa_grid, kappa_ex, alpha_T, Eth_src, Eth, alpha); 
   
 }
