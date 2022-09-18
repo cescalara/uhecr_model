@@ -14,7 +14,7 @@ If you use this code in your work please cite the [paper](https://arxiv.org/abs/
 * [Stan](https://mc-stan.org) and [PyStan](https://pystan.readthedocs.io/en/latest/)
 * [CRPropa 3](https://github.com/CRPropa/CRPropa3) - for fits to simulations run using CRPropa 3
 * [basemap](https://matplotlib.org/basemap/users/installing.html) - for sky plots
-* [fancy](https://github.com/cescalara/fancy) - a python wrapper to make things (a bit) cleaner
+* [fancy (v3.0 release)](https://github.com/cescalara/fancy/releases/tag/v.3.0.0) - a python wrapper to make things (a bit) cleaner
 * [Jupyter](https://jupyter.org) - for notebooks
 
 ## Questions?
